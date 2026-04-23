@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VetSys — Vacunación Pendiente</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0e1a;--surface:#111827;--border:#1e2d40;--accent:#00d4aa;--accent2:#3b82f6;--text:#f0f6ff;--muted:#6b7fa3;--danger:#ef4444;--warn:#f59e0b}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);min-height:100vh;color:var(--text)}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 40% at 50% 0%,rgba(0,212,170,.06) 0%,transparent 60%);pointer-events:none}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:16px}
+.nav-brand span{font-size:20px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{padding:7px 14px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;border-radius:8px;transition:background .2s,color .2s}
+.nav-links a:hover{background:rgba(255,255,255,.05);color:var(--text)}
+.nav-links a.active{background:rgba(0,212,170,.1);color:var(--accent)}
+.session{font-family:'Fira Mono',monospace;font-size:11px;color:var(--muted);background:rgba(255,255,255,.04);padding:5px 12px;border-radius:6px;border:1px solid var(--border)}
+.stats{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border)}
+.stat{padding:18px 28px;border-right:1px solid var(--border)}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;font-family:'Fira Mono',monospace}
+.stat-val{font-size:28px;font-weight:700}
+.stat-val.red{color:var(--danger)}
+.stat-val.green{color:var(--accent)}
+.stat-val.warn{color:var(--warn)}
+.page{max-width:1040px;margin:0 auto;padding:36px 24px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.page-header h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.page-header p{font-size:14px;color:var(--muted)}
+.toolbar-right{display:flex;align-items:center;gap:12px}
+.cache-badge{font-family:'Fira Mono',monospace;font-size:11px;font-weight:600;padding:6px 14px;border-radius:6px;border:1px solid}
+.cache-badge.hit{background:rgba(0,212,170,.1);color:var(--accent);border-color:rgba(0,212,170,.3)}
+.cache-badge.miss{background:rgba(239,68,68,.1);color:#fca5a5;border-color:rgba(239,68,68,.3)}
+.cache-badge.loading{background:rgba(107,127,163,.1);color:var(--muted);border-color:var(--border)}
+.latency{font-family:'Fira Mono',monospace;font-size:12px;color:var(--muted)}
+.btn{padding:10px 20px;background:var(--accent2);color:#fff;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:opacity .2s}
+.btn:hover{opacity:.85}
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+thead{background:rgba(0,212,170,.06);border-bottom:1px solid var(--border)}
+thead th{padding:13px 16px;font-family:'Fira Mono',monospace;font-size:11px;color:var(--accent);text-align:left;font-weight:500;letter-spacing:.5px;text-transform:uppercase}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.02)}
+tbody td{padding:13px 16px;font-size:13px;vertical-align:middle}
+.id{font-family:'Fira Mono',monospace;font-size:12px;color:var(--muted)}
+.muted{color:var(--muted);font-size:12px}
+.badge{display:inline-block;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
+.badge-sin{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.2)}
+.badge-vencida{background:rgba(245,158,11,.15);color:#fcd34d;border:1px solid rgba(245,158,11,.2)}
+.empty{text-align:center;padding:60px 24px;color:var(--muted)}
+.empty .icon{font-size:40px;margin-bottom:12px}
+.empty p{font-size:13px;font-family:'Fira Mono',monospace}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand"><span>🐾</span> VetSys</div>
+  <div class="nav-links">
+    <a href="busqueda.html">Mascotas</a>
+    <a href="vacunacion.html" class="active">Vacunación</a>
+    <a href="login.html">Salir</a>
+  </div>
+  <div class="session" id="session-label">—</div>
+</nav>
+
+<div class="stats">
+  <div class="stat"><div class="stat-label">Total pendientes</div><div class="stat-val red" id="stat-total">—</div></div>
+  <div class="stat"><div class="stat-label">Sin vacuna</div><div class="stat-val warn" id="stat-sin">—</div></div>
+  <div class="stat"><div class="stat-label">Vencidas</div><div class="stat-val green" id="stat-venc">—</div></div>
+</div>
+
+<div class="page">
+  <div class="toolbar">
+    <div class="page-header">
+      <h1>Vacunación Pendiente</h1>
+      <p>Vista cacheada en Redis — observa el badge CACHE HIT / MISS</p>
+    </div>
+    <div class="toolbar-right">
+      <span class="cache-badge loading" id="cache-badge">CARGANDO...</span>
+      <span class="latency" id="latency"></span>
+      <button class="btn" id="btn-refresh">↺ Actualizar</button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre / Especie</th>
+          <th>Dueño</th>
+          <th>Teléfono</th>
+          <th>Estado</th>
+          <th>Última dosis</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6"><div class="empty"><div class="icon">💉</div><p>Cargando...</p></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+if (!sessionStorage.getItem('rol')) { window.location.replace('login.html'); }
+const rol = sessionStorage.getItem('rol');
+const vet_id = parseInt(sessionStorage.getItem('vet_id')) || 0;
+document.getElementById('session-label').textContent = rol.replace('rol_','') + (vet_id ? ` #${vet_id}` : '');
+
+function render(data) {
+  let sin = 0, venc = 0;
+  document.getElementById('stat-total').textContent = data.length;
+  const tbody = document.getElementById('tbody');
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="icon">✅</div><p>Todos vacunados</p></div></td></tr>`;
+    document.getElementById('stat-sin').textContent = 0;
+    document.getElementById('stat-venc').textContent = 0;
+    return;
+  }
+  tbody.innerHTML = data.map(m => {
+    const sinVac = !m.ultima_vacuna;
+    if (sinVac) sin++; else venc++;
+    const badge = sinVac
+      ? `<span class="badge badge-sin">Sin vacuna</span>`
+      : `<span class="badge badge-vencida">Vencida</span>`;
+    return `<tr>
+      <td class="id">#${String(m.mascota_id).padStart(4,'0')}</td>
+      <td><strong>${m.mascota}</strong><br><span class="muted">${m.especie}</span></td>
+      <td class="muted">${m.dueno}</td>
+      <td class="muted">${m.telefono||'—'}</td>
+      <td>${badge}</td>
+      <td class="muted">${m.ultima_vacuna||'—'}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('stat-sin').textContent = sin;
+  document.getElementById('stat-venc').textContent = venc;
+}
+
+async function cargar() {
+  const badge = document.getElementById('cache-badge');
+  const lat = document.getElementById('latency');
+  badge.textContent = 'CARGANDO...'; badge.className = 'cache-badge loading'; lat.textContent = '';
+  const t0 = performance.now();
+  try {
+    const res = await fetch(`${CONFIG.API_URL}/vacunas/pendientes`, {
+      headers: {'x-rol': rol, 'x-vet-id': String(vet_id)}
+    });
+    const elapsed = Math.round(performance.now() - t0);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    const isHit = elapsed < 50;
+    badge.textContent = isHit ? '⚡ CACHE HIT' : '🔄 CACHE MISS';
+    badge.className = `cache-badge ${isHit ? 'hit' : 'miss'}`;
+    lat.textContent = `${elapsed}ms`;
+    render(data);
+  } catch {
+    badge.textContent = 'ERROR'; badge.className = 'cache-badge miss';
+    document.getElementById('tbody').innerHTML = `<tr><td colspan="6"><div class="empty"><p>Error al conectar con la API</p></div></td></tr>`;
+  }
+}
+
+document.getElementById('btn-refresh').addEventListener('click', cargar);
+cargar();
+</script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VetSys — Acceso</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;
+  --surface:#111827;
+  --border:#1e2d40;
+  --accent:#00d4aa;
+  --accent2:#3b82f6;
+  --text:#f0f6ff;
+  --muted:#6b7fa3;
+  --danger:#ef4444;
+}
+body{font-family:'Space Grotesk',sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--text);overflow:hidden}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(0,212,170,.08) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(59,130,246,.07) 0%,transparent 60%);pointer-events:none}
+.grid-bg{position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,170,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,170,.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:48px 44px;width:min(440px,94vw);position:relative;z-index:1;box-shadow:0 0 0 1px rgba(0,212,170,.05),0 32px 64px rgba(0,0,0,.4)}
+.card::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:60%;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}
+.logo{display:flex;align-items:center;gap:12px;margin-bottom:36px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.logo-text{font-family:'Fira Mono',monospace;font-size:13px;color:var(--muted);line-height:1.5}
+.logo-text strong{display:block;color:var(--text);font-size:16px;font-family:'Space Grotesk',sans-serif;font-weight:700}
+h1{font-size:24px;font-weight:700;margin-bottom:6px}
+.subtitle{font-size:14px;color:var(--muted);margin-bottom:32px}
+.field{margin-bottom:20px}
+label{display:block;font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+select,input[type=number]{width:100%;padding:13px 16px;background:#0d1525;border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s;appearance:none;-webkit-appearance:none}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300d4aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:40px}
+select:focus,input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,170,.1)}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+.hint{font-size:12px;color:var(--muted);margin-top:6px}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#00b894);color:#0a0e1a;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;margin-top:8px;transition:opacity .2s,transform .1s;letter-spacing:.3px}
+.btn:hover{opacity:.9;transform:translateY(-1px)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.error{color:var(--danger);font-size:13px;font-weight:600;text-align:center;margin-top:12px;display:none}
+.tag{display:inline-block;padding:2px 8px;background:rgba(0,212,170,.1);color:var(--accent);border-radius:4px;font-size:11px;font-family:'Fira Mono',monospace;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="grid-bg"></div>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🐾</div>
+    <div class="logo-text">
+      <strong>VetSys</strong>
+      Sistema de Clínica Veterinaria
+    </div>
+  </div>
+  <h1>Acceso al sistema</h1>
+  <p class="subtitle">Selecciona tu rol para continuar</p>
+
+  <div class="field">
+    <label>Rol</label>
+    <select id="rol">
+      <option value="">— Seleccionar —</option>
+      <option value="rol_veterinario">🩺 Veterinario</option>
+      <option value="rol_recepcionista">📋 Recepcionista</option>
+      <option value="rol_administrador">⚙️ Administrador</option>
+    </select>
+  </div>
+
+  <div class="field" id="field-vet" style="display:none">
+    <label>ID de Veterinario</label>
+    <input type="number" id="vet_id" placeholder="Ej: 1" min="1">
+    <div class="hint">
+      <span class="tag">vet_id=1</span> Dr. López &nbsp;
+      <span class="tag">vet_id=2</span> Dra. García &nbsp;
+      <span class="tag">vet_id=3</span> Dr. Méndez
+    </div>
+  </div>
+
+  <button class="btn" id="btn-login">Ingresar →</button>
+  <div class="error" id="error"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script>
+document.getElementById('rol').addEventListener('change', function(){
+  document.getElementById('field-vet').style.display = this.value === 'rol_veterinario' ? 'block' : 'none';
+});
+
+document.getElementById('btn-login').addEventListener('click', async () => {
+  const rol = document.getElementById('rol').value;
+  const vet_id = parseInt(document.getElementById('vet_id').value) || 0;
+  const err = document.getElementById('error');
+  const btn = document.getElementById('btn-login');
+
+  if (!rol) { err.textContent='Selecciona un rol'; err.style.display='block'; return; }
+  if (rol === 'rol_veterinario' && vet_id <= 0) { err.textContent='Ingresa tu ID de veterinario'; err.style.display='block'; return; }
+
+  err.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Conectando...';
+
+  try {
+    const res = await fetch(`${CONFIG.API_URL}/auth/login`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({rol, vet_id})
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    sessionStorage.setItem('rol', data.rol);
+    sessionStorage.setItem('vet_id', data.vet_id);
+    window.location.href = 'busqueda.html';
+  } catch {
+    err.textContent = 'No se pudo conectar con la API';
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Ingresar →';
+  }
+});
+</script>
+</body>
+</html>
